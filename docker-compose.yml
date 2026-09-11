@@ -1,0 +1,62 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: encurtaurl_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./frontend:/frontend
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - encurtaurl_net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: encurtaurl_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: encurtaurl
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d encurtaurl"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - encurtaurl_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: encurtaurl_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - encurtaurl_net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  encurtaurl_net:
+    driver: bridge
