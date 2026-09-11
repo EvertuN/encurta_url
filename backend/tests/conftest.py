@@ -3,16 +3,32 @@
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.config import settings
-from app.database.session import Base, get_db
+from app.database.redis import get_redis
+from app.database.session import get_db
 from app.main import app
+
+
+class FakeRedis:
+    """Redis em memória para testes — sem dependência de servidor real."""
+
+    def __init__(self):
+        self._store: dict[str, str] = {}
+
+    async def get(self, key: str) -> str | None:
+        return self._store.get(key)
+
+    async def set(self, key: str, value: str, ex: int | None = None) -> None:
+        self._store[key] = value
+
+    async def delete(self, key: str) -> None:
+        self._store.pop(key, None)
 
 
 @pytest_asyncio.fixture(scope="function")
 async def db_engine():
-    """Engine de teste — usa o mesmo banco que a aplicação."""
     engine = create_async_engine(settings.database_url)
     yield engine
     await engine.dispose()
@@ -20,7 +36,6 @@ async def db_engine():
 
 @pytest_asyncio.fixture(scope="function")
 async def db(db_engine):
-    """Sessão de banco com rollback automático ao fim de cada teste."""
     Session = async_sessionmaker(bind=db_engine, expire_on_commit=False)
     async with Session() as session:
         yield session
@@ -28,13 +43,22 @@ async def db(db_engine):
 
 
 @pytest_asyncio.fixture(scope="function")
-async def client(db):
-    """AsyncClient HTTP que usa a sessão de teste injetada via DI."""
+async def fake_redis():
+    return FakeRedis()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def client(db, fake_redis):
+    """AsyncClient com DI overrides: banco com rollback + Redis em memória."""
 
     async def override_get_db():
         yield db
 
+    async def override_get_redis():
+        return fake_redis
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_redis] = override_get_redis
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
