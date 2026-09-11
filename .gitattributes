@@ -1,0 +1,7 @@
+# Normaliza para LF no repositório, independente do OS
+* text=auto eol=lf
+
+# Binários — sem conversão
+*.png binary
+*.jpg binary
+*.ico binary
