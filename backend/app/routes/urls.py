@@ -1,0 +1,48 @@
+"""Router de URLs — POST /urls."""
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
+from app.database.session import get_db
+from app.schemas.url import UrlCreate, UrlResponse
+from app.services.url_service import (
+    ShortCodeCollisionError,
+    ShortCodeConflictError,
+    create_short_url,
+)
+
+router = APIRouter(prefix="/urls", tags=["URLs"])
+
+
+def _to_response(url, base_url: str) -> UrlResponse:
+    return UrlResponse(
+        id=url.id,
+        short_code=url.short_code,
+        original_url=url.original_url,
+        short_url=f"{base_url.rstrip('/')}/{url.short_code}",
+        created_at=url.created_at,
+        expires_at=url.expires_at,
+    )
+
+
+@router.post(
+    "",
+    response_model=UrlResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Cria uma URL curta",
+)
+async def create_url(
+    payload: UrlCreate,
+    db: AsyncSession = Depends(get_db),
+) -> UrlResponse:
+    try:
+        url = await create_short_url(db, payload)
+    except ShortCodeConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except ShortCodeCollisionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
+        )
+
+    return _to_response(url, settings.base_url)
