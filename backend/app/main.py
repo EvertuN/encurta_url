@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database.redis import redis_lifespan
@@ -38,6 +39,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Arquivos estáticos — CSS, JS e assets
+for _sub in ("css", "js", "assets"):
+    _path = _FRONTEND_DIR / _sub
+    if _path.exists():
+        app.mount(f"/{_sub}", StaticFiles(directory=str(_path)), name=_sub)
 
 
 @app.get("/health", tags=["Health"], summary="Verifica se a API está no ar")

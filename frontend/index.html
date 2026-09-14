@@ -2,441 +2,78 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EncurtaURL — Encurtador de URLs</title>
-    <meta name="description" content="Transforme URLs enormes em links curtos e fáceis de compartilhar.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: "Inter", Arial, Helvetica, sans-serif;
-            background: #f7f8fa;
-            color: #171717;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Header */
-        header {
-            width: 100%;
-            border-bottom: 1px solid #e5e7eb;
-            background: #ffffff;
-        }
-
-        nav {
-            max-width: 1000px;
-            margin: 0 auto;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-
-        .logo {
-            font-size: 18px;
-            font-weight: 700;
-            color: #111827;
-            text-decoration: none;
-        }
-
-        .logo span {
-            color: #4f46e5;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #6b7280;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.15s;
-        }
-
-        .nav-link:hover {
-            color: #111827;
-        }
-
-        /* Main */
-        main {
-            flex: 1;
-            max-width: 700px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 80px 20px 60px;
-            text-align: center;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 5px 12px;
-            margin-bottom: 22px;
-            border-radius: 20px;
-            background: #eef2ff;
-            color: #4f46e5;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        h1 {
-            font-size: 42px;
-            line-height: 1.15;
-            letter-spacing: -1.5px;
-            margin-bottom: 14px;
-        }
-
-        .description {
-            max-width: 480px;
-            margin: 0 auto 36px;
-            color: #6b7280;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        /* Formulário */
-        .form {
-            display: flex;
-            gap: 8px;
-            background: #ffffff;
-            padding: 6px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-        }
-
-        .form input[type="text"] {
-            flex: 1;
-            min-width: 0;
-            border: none;
-            outline: none;
-            padding: 13px 14px;
-            font-size: 15px;
-            font-family: inherit;
-            color: #111827;
-            background: transparent;
-        }
-
-        .form input::placeholder {
-            color: #9ca3af;
-        }
-
-        .form button {
-            border: none;
-            background: #4f46e5;
-            color: #fff;
-            padding: 0 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: background 0.15s;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .form button:hover:not(:disabled) {
-            background: #4338ca;
-        }
-
-        .form button:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .spinner {
-            display: none;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255,255,255,0.4);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Resultado */
-        .result {
-            display: none;
-            margin-top: 14px;
-            padding: 16px 18px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            text-align: left;
-        }
-
-        .result-label {
-            font-size: 12px;
-            color: #9ca3af;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-
-        .result-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .result-url {
-            color: #4f46e5;
-            font-size: 16px;
-            font-weight: 600;
-            text-decoration: none;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .result-url:hover {
-            text-decoration: underline;
-        }
-
-        .btn-copy {
-            border: 1px solid #e5e7eb;
-            background: #f9fafb;
-            color: #374151;
-            padding: 6px 14px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: background 0.15s;
-            white-space: nowrap;
-        }
-
-        .btn-copy:hover {
-            background: #f3f4f6;
-        }
-
-        .result-original {
-            margin-top: 8px;
-            font-size: 12px;
-            color: #9ca3af;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* Erro */
-        .error-msg {
-            display: none;
-            margin-top: 12px;
-            padding: 11px 14px;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            color: #b91c1c;
-            font-size: 14px;
-            text-align: left;
-        }
-
-        /* Stats decorativos */
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 50px;
-            margin-top: 70px;
-        }
-
-        .stat strong {
-            display: block;
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .stat span {
-            color: #9ca3af;
-            font-size: 13px;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 28px 20px;
-            color: #9ca3af;
-            font-size: 13px;
-            border-top: 1px solid #e5e7eb;
-            background: #fff;
-        }
-
-        /* Responsivo */
-        @media (max-width: 600px) {
-            main { padding-top: 50px; }
-            h1 { font-size: 32px; letter-spacing: -1px; }
-            .form { flex-direction: column; }
-            .form button { height: 48px; justify-content: center; }
-            .stats { gap: 28px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EncurtaURL — Encurtador de URLs</title>
+  <meta name="description" content="Transforme URLs enormes em links curtos e fáceis de compartilhar.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/index.css">
 </head>
 
 <body>
 
-    <header>
-        <nav>
-            <a href="/" class="logo">Encurta<span>URL</span></a>
-            <a href="/stats" class="nav-link">Estatísticas</a>
-        </nav>
-    </header>
+  <header>
+    <nav>
+      <a href="/" class="logo">
+        <!-- <img src="/assets/logo.svg" alt="EncurtaURL ícone"> -->
+        Encurta<span>URL</span>
+      </a>
+      <a href="/stats" class="nav-link">Estatísticas</a>
+    </nav>
+  </header>
 
-    <main>
-        <div class="badge">Encurtador de URLs</div>
+  <main>
+    <div class="badge">Encurtador de URLs</div>
 
-        <h1>Links longos.<br>Agora, simples.</h1>
+    <h1>Links longos.<br>Agora, simples.</h1>
 
-        <p class="description">
-            Transforme URLs enormes em links curtos e fáceis de compartilhar.
-        </p>
+    <p class="description">
+      Transforme URLs enormes em links curtos e fáceis de compartilhar.
+    </p>
 
-        <div class="form">
-            <input
-                type="text"
-                id="url-input"
-                placeholder="Cole sua URL aqui..."
-                autocomplete="off"
-            >
-            <button type="button" id="shorten-btn" onclick="handleShorten()">
-                <span class="spinner" id="spinner"></span>
-                <span id="btn-text">Encurtar</span>
-            </button>
-        </div>
+    <div class="form">
+      <input type="text" id="url-input" placeholder="Cole sua URL aqui..." autocomplete="off">
+      <button type="button" id="shorten-btn" onclick="handleShorten()">
+        <span class="spinner" id="spinner"></span>
+        <span id="btn-text">Encurtar</span>
+      </button>
+    </div>
 
-        <div class="error-msg" id="error-msg"></div>
+    <div class="error-msg" id="error-msg"></div>
 
-        <div class="result" id="result">
-            <div class="result-label">Seu link curto</div>
-            <div class="result-row">
-                <a href="#" class="result-url" id="result-url" target="_blank" rel="noopener noreferrer"></a>
-                <button class="btn-copy" id="btn-copy" onclick="copyLink()">Copiar</button>
-            </div>
-            <div class="result-original" id="result-original"></div>
-        </div>
+    <div class="result" id="result">
+      <div class="result-label">Seu link curto</div>
+      <div class="result-row">
+        <a href="#" class="result-url" id="result-url" target="_blank" rel="noopener noreferrer"></a>
+        <button class="btn-copy" id="btn-copy" onclick="copyLink()">Copiar</button>
+      </div>
+      <div class="result-original" id="result-original"></div>
+    </div>
 
-        <div class="stats">
-            <div class="stat">
-                <strong>62⁶</strong>
-                <span>combinações possíveis</span>
-            </div>
-            <div class="stat">
-                <strong>&lt; 5ms</strong>
-                <span>tempo de resposta</span>
-            </div>
-            <div class="stat">
-                <strong>Redis</strong>
-                <span>cache em memória</span>
-            </div>
-        </div>
-    </main>
+    <div class="stats">
+      <div class="stat">
+        <strong>62⁶</strong>
+        <span>combinações possíveis</span>
+      </div>
+      <div class="stat">
+        <strong>&lt; 5ms</strong>
+        <span>tempo de resposta</span>
+      </div>
+      <div class="stat">
+        <strong>Redis</strong>
+        <span>cache em memória</span>
+      </div>
+    </div>
+  </main>
 
-    <footer>
-        © 2026 EncurtaURL. Simples e rápido. &mdash; <a href="/docs" style="color: #9ca3af;">API</a>
-    </footer>
+  <footer>
+    © 2026 EncurtaURL. Simples e rápido. &mdash; <a href="/docs">API</a>
+  </footer>
 
-    <script>
-        async function handleShorten() {
-            const input = document.getElementById('url-input');
-            const btn = document.getElementById('shorten-btn');
-            const spinner = document.getElementById('spinner');
-            const btnText = document.getElementById('btn-text');
-            const errorEl = document.getElementById('error-msg');
-            const resultEl = document.getElementById('result');
-
-            let url = input.value.trim();
-            if (!url) return;
-
-            // Normaliza se não tiver protocolo
-            if (!/^https?:\/\//i.test(url)) {
-                url = 'https://' + url;
-                input.value = url;
-            }
-
-            errorEl.style.display = 'none';
-            resultEl.style.display = 'none';
-
-            btn.disabled = true;
-            spinner.style.display = 'inline-block';
-            btnText.textContent = 'Encurtando...';
-
-            try {
-                const res = await fetch('/urls', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ original_url: url }),
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    let msg = 'Não foi possível encurtar a URL.';
-                    if (res.status === 422) msg = 'URL inválida. Verifique o endereço e tente novamente.';
-                    else if (data.detail && typeof data.detail === 'string') msg = data.detail;
-                    errorEl.textContent = msg;
-                    errorEl.style.display = 'block';
-                    return;
-                }
-
-                const urlEl = document.getElementById('result-url');
-                urlEl.href = data.short_url;
-                urlEl.textContent = data.short_url;
-                document.getElementById('result-original').textContent = data.original_url;
-
-                resultEl.style.display = 'block';
-                resetCopy();
-                input.value = '';
-            } catch (e) {
-                errorEl.textContent = 'Erro de conexão com o servidor.';
-                errorEl.style.display = 'block';
-            } finally {
-                btn.disabled = false;
-                spinner.style.display = 'none';
-                btnText.textContent = 'Encurtar';
-            }
-        }
-
-        async function copyLink() {
-            const url = document.getElementById('result-url').textContent;
-            const btn = document.getElementById('btn-copy');
-            try {
-                await navigator.clipboard.writeText(url);
-            } catch (e) {
-                const tmp = document.createElement('input');
-                tmp.value = url;
-                document.body.appendChild(tmp);
-                tmp.select();
-                document.execCommand('copy');
-                document.body.removeChild(tmp);
-            }
-            btn.textContent = '✓ Copiado!';
-            setTimeout(resetCopy, 2000);
-        }
-
-        function resetCopy() {
-            document.getElementById('btn-copy').textContent = 'Copiar';
-        }
-
-        // Permitir Enter para encurtar
-        document.getElementById('url-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') handleShorten();
-        });
-    </script>
+  <script src="/js/index.js"></script>
 
 </body>
+
 </html>
