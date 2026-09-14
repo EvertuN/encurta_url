@@ -15,9 +15,9 @@ async def test_get_root_serves_frontend(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_get_admin_serves_stats_page(client: AsyncClient):
-    """GET /admin deve retornar 200 com o HTML da página de estatísticas."""
-    res = await client.get("/admin")
+async def test_get_stats_serves_stats_page(client: AsyncClient):
+    """GET /stats deve retornar 200 com o HTML da página de estatísticas."""
+    res = await client.get("/stats")
     assert res.status_code == 200
     assert "text/html" in res.headers.get("content-type", "")
     assert "Estatísticas" in res.text
