@@ -2,73 +2,61 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EncurtaURL — Estatísticas</title>
-    <meta name="description" content="Consulte as estatísticas de acessos dos seus links encurtados.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/stats.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EncurtaURL — Estatísticas</title>
+  <meta name="description" content="Consulte as estatísticas de acessos dos seus links encurtados.">
+  <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/stats.css">
 </head>
 
 <body>
 
-    <header>
-        <nav>
-            <a href="/" class="logo">
-                <img src="/assets/logo.svg" alt="EncurtaURL ícone">
-                Encurta<span>URL</span>
-            </a>
-            <a href="/stats" class="nav-link" aria-current="page">Estatísticas</a>
-        </nav>
-    </header>
+  <div id="header-placeholder"></div>
 
-    <main>
-        <h1>Estatísticas</h1>
-        <p class="subtitle">Digite o código curto ou cole a URL completa para ver os acessos.</p>
+  <main>
+    <h1>Estatísticas</h1>
+    <p class="subtitle">Digite o código curto ou cole a URL completa para ver os acessos.</p>
 
-        <div class="search-form">
-            <input
-                type="text"
-                id="code-input"
-                placeholder="Código (ex: 5V3JJF) ou URL completa"
-                autocomplete="off"
-            >
-            <button type="button" id="search-btn" onclick="handleSearch()">
-                <span class="spinner" id="spinner"></span>
-                <span id="btn-text">Consultar</span>
-            </button>
+    <div class="search-form">
+      <input type="text" id="code-input" placeholder="Código (ex: 5V3JJF) ou URL completa" autocomplete="off">
+      <button type="button" id="search-btn" onclick="handleSearch()">
+        <span class="spinner" id="spinner"></span>
+        <span id="btn-text">Consultar</span>
+      </button>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="stats-panel" id="stats-panel">
+      <div class="panel-header">
+        <div class="panel-code" id="panel-code"></div>
+        <div class="panel-url" id="panel-url"></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" id="stat-clicks">0</div>
+          <div class="stat-label">Total de Cliques</div>
         </div>
-
-        <div class="error-msg" id="error-msg"></div>
-
-        <div class="stats-panel" id="stats-panel">
-            <div class="panel-header">
-                <div class="panel-code" id="panel-code"></div>
-                <div class="panel-url" id="panel-url"></div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value" id="stat-clicks">0</div>
-                    <div class="stat-label">Total de Cliques</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="stat-last" style="font-size: 15px; line-height: 1.4;">—</div>
-                    <div class="stat-label">Último Clique</div>
-                    <div class="stat-sub" id="stat-last-sub"></div>
-                </div>
-            </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-last" style="font-size: 15px; line-height: 1.4;">—</div>
+          <div class="stat-label">Último Clique</div>
+          <div class="stat-sub" id="stat-last-sub"></div>
         </div>
+      </div>
+    </div>
 
-        <p class="hint" id="hint">Ex: <code>5V3JJF</code> ou <code>http://localhost:8000/5V3JJF</code></p>
-    </main>
+    <p class="hint" id="hint">Ex: <code>5V3JJF</code> ou <code>http://localhost:8000/5V3JJF</code></p>
+  </main>
 
-    <footer>
-        © 2026 EncurtaURL. Simples e rápido. &mdash; <a href="/">Encurtar</a>
-    </footer>
+  <div id="footer-placeholder"></div>
 
-    <script src="/js/stats.js"></script>
+  <script src="/js/common.js"></script>
+  <script src="/js/stats.js"></script>
 
 </body>
+
 </html>

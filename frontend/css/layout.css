@@ -1,0 +1,91 @@
+/* =============================================
+   layout.css — Header, nav, logo e footer
+   Compartilhado por todas as páginas
+   ============================================= */
+
+@import "./variables.css";
+
+/* ---- Reset base ---- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Header ---- */
+
+header {
+  width: 100%;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+nav {
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-heading);
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+
+.logo span {
+  color: var(--color-primary);
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.nav-link:hover {
+  color: var(--color-text-heading);
+}
+
+.nav-link[aria-current="page"] {
+  color: var(--color-text-heading);
+  font-weight: 600;
+}
+
+/* ---- Footer ---- */
+
+footer {
+  text-align: center;
+  padding: 28px 20px;
+  color: var(--color-text-dim);
+  font-size: 13px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+footer a {
+  color: var(--color-text-dim);
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: var(--color-text-muted);
+}

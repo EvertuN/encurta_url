@@ -41,7 +41,7 @@ app.add_middleware(
 )
 
 # Arquivos estáticos — CSS, JS e assets
-for _sub in ("css", "js", "assets"):
+for _sub in ("css", "js", "assets", "partials"):
     _path = _FRONTEND_DIR / _sub
     if _path.exists():
         app.mount(f"/{_sub}", StaticFiles(directory=str(_path)), name=_sub)
