@@ -1,4 +1,4 @@
-/* stats.js — lógica da página de estatísticas */
+/* stats.js - lógica da página de estatísticas */
 
 async function handleSearch() {
     const input = document.getElementById('code-input');
@@ -59,7 +59,7 @@ async function handleSearch() {
             lastEl.textContent = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
             lastSubEl.textContent = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         } else {
-            lastEl.textContent = '—';
+            lastEl.textContent = '-';
             lastSubEl.textContent = 'sem acessos ainda';
         }
 

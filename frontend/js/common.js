@@ -1,4 +1,4 @@
-/* common.js — carrega header e footer compartilhados */
+/* common.js - carrega header e footer compartilhados */
 
 async function loadPartial(selector, url) {
   try {

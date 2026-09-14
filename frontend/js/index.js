@@ -1,4 +1,4 @@
-/* index.js — lógica da página principal */
+/* index.js - lógica da página principal */
 
 async function handleShorten() {
     const input = document.getElementById('url-input');
