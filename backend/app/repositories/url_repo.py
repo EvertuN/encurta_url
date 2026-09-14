@@ -65,3 +65,13 @@ async def get_url_stats(db: AsyncSession, short_code: str) -> dict | None:
         "total_clicks": row.total_clicks,
         "last_click": row.last_click,
     }
+
+
+async def delete_url(db: AsyncSession, short_code: str) -> bool:
+    """Remove uma URL pelo short_code. Retorna True se removida, False se não encontrada."""
+    url = await get_url_by_code(db, short_code)
+    if url is None:
+        return False
+    await db.delete(url)
+    await db.commit()
+    return True

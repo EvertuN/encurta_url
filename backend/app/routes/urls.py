@@ -3,10 +3,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import redis.asyncio as aioredis
+
 from app.config import settings
+from app.database.redis import get_redis
 from app.database.session import get_db
 from app.repositories import url_repo
 from app.schemas.url import UrlCreate, UrlInfo, UrlResponse, UrlStats
+from app.services import url_service
 from app.services.url_service import (
     ShortCodeCollisionError,
     ShortCodeConflictError,
@@ -83,3 +87,21 @@ async def get_url_info(
             detail=f"Código '{short_code}' não encontrado.",
         )
     return _to_response(url, settings.base_url)
+
+
+@router.delete(
+    "/{short_code}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove uma URL encurtada",
+)
+async def delete_url(
+    short_code: str,
+    db: AsyncSession = Depends(get_db),
+    redis: aioredis.Redis = Depends(get_redis),
+) -> None:
+    deleted = await url_service.delete_url(db, redis, short_code)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Código '{short_code}' não encontrado.",
+        )

@@ -1,13 +1,16 @@
-"""Serviço de criação de URLs — orquestra geração de código e persistência."""
+"""Serviço de URLs — orquestra geração, persistência e ciclo de vida de URLs."""
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+
+import redis.asyncio as aioredis
 
 from app.config import settings
 from app.models.url import Url
 from app.repositories import url_repo
 from app.schemas.url import UrlCreate
-from app.services.shortcode import generate_short_code, is_valid_short_code
+from app.services import cache_service
+from app.services.shortcode import generate_short_code
 
 
 class ShortCodeCollisionError(Exception):
@@ -64,3 +67,20 @@ async def create_short_url(db: AsyncSession, payload: UrlCreate) -> Url:
 
     # Nunca atingido — satisfaz o type checker
     raise ShortCodeCollisionError("Falha inesperada na geração de short_code.")
+
+
+async def delete_url(
+    db: AsyncSession,
+    redis: aioredis.Redis,
+    short_code: str,
+) -> bool:
+    """Remove a URL do banco e invalida a chave no cache Redis.
+
+    Retorna True se a URL existia e foi removida, False se não encontrada.
+    """
+    deleted = await url_repo.delete_url(db, short_code)
+    if not deleted:
+        return False
+
+    await cache_service.cache_delete(redis, short_code)
+    return True
