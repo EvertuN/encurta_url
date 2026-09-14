@@ -3,8 +3,9 @@
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+import app.database.session as app_db_session
 from app.config import settings
 from app.database.redis import get_redis
 from app.database.session import get_db
@@ -32,6 +33,30 @@ async def db_engine():
     engine = create_async_engine(settings.database_url)
     yield engine
     await engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def patch_async_session_local(db_engine):
+    """Garante que AsyncSessionLocal use o engine e event loop do teste atual."""
+    original_session = app_db_session.AsyncSessionLocal
+    app_db_session.AsyncSessionLocal = async_sessionmaker(
+        bind=db_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+    yield
+    app_db_session.AsyncSessionLocal = original_session
+    await app_db_session.engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def clean_database(db_engine):
+    """Garante banco de dados limpo e isolamento entre os testes."""
+    from sqlalchemy import text
+
+    async with db_engine.begin() as conn:
+        await conn.execute(text("TRUNCATE TABLE click_events, urls CASCADE;"))
+    yield
 
 
 @pytest_asyncio.fixture(scope="function")
