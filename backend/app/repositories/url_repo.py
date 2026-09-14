@@ -3,9 +3,10 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.click_event import ClickEvent
 from app.models.url import Url
 
 
@@ -37,3 +38,30 @@ async def get_url_by_code(db: AsyncSession, short_code: str) -> Url | None:
 async def get_url_by_id(db: AsyncSession, url_id: uuid.UUID) -> Url | None:
     """Busca uma URL pelo id (UUID)."""
     return await db.get(Url, url_id)
+
+
+async def get_url_stats(db: AsyncSession, short_code: str) -> dict | None:
+    """Retorna estatísticas de cliques de uma URL pelo short_code.
+
+    Retorna None se a URL não for encontrada no banco.
+    """
+    query = (
+        select(
+            Url.short_code,
+            func.count(ClickEvent.id).label("total_clicks"),
+            func.max(ClickEvent.clicked_at).label("last_click"),
+        )
+        .outerjoin(ClickEvent, ClickEvent.url_id == Url.id)
+        .where(Url.short_code == short_code)
+        .group_by(Url.id, Url.short_code)
+    )
+    result = await db.execute(query)
+    row = result.one_or_none()
+    if row is None:
+        return None
+
+    return {
+        "short_code": row.short_code,
+        "total_clicks": row.total_clicks,
+        "last_click": row.last_click,
+    }

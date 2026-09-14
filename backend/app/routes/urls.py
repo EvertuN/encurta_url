@@ -1,11 +1,12 @@
-"""Router de URLs — POST /urls."""
+"""Router de URLs — operações sobre o recurso URL."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database.session import get_db
-from app.schemas.url import UrlCreate, UrlResponse
+from app.repositories import url_repo
+from app.schemas.url import UrlCreate, UrlInfo, UrlResponse, UrlStats
 from app.services.url_service import (
     ShortCodeCollisionError,
     ShortCodeConflictError,
@@ -45,4 +46,40 @@ async def create_url(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
         )
 
+    return _to_response(url, settings.base_url)
+
+
+@router.get(
+    "/{short_code}/stats",
+    response_model=UrlStats,
+    summary="Consulta estatísticas de acesso de uma URL",
+)
+async def get_url_stats(
+    short_code: str,
+    db: AsyncSession = Depends(get_db),
+) -> UrlStats:
+    stats = await url_repo.get_url_stats(db, short_code)
+    if stats is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Código '{short_code}' não encontrado.",
+        )
+    return UrlStats(**stats)
+
+
+@router.get(
+    "/{short_code}",
+    response_model=UrlInfo,
+    summary="Consulta informações detalhadas de uma URL",
+)
+async def get_url_info(
+    short_code: str,
+    db: AsyncSession = Depends(get_db),
+) -> UrlInfo:
+    url = await url_repo.get_url_by_code(db, short_code)
+    if url is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Código '{short_code}' não encontrado.",
+        )
     return _to_response(url, settings.base_url)

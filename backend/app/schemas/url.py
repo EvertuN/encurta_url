@@ -43,3 +43,17 @@ class UrlResponse(BaseModel):
     expires_at: datetime | None
 
     model_config = {"from_attributes": True}
+
+
+class UrlInfo(UrlResponse):
+    """Informações completas da URL encurtada."""
+
+    pass
+
+
+class UrlStats(BaseModel):
+    """Estatísticas de acesso de uma URL encurtada."""
+
+    short_code: str
+    total_clicks: int
+    last_click: datetime | None
