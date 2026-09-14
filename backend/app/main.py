@@ -53,6 +53,14 @@ async def serve_index():
     return JSONResponse({"status": "ok", "app": "encurtaurl"})
 
 
+@app.get("/admin", include_in_schema=False)
+async def serve_admin():
+    admin_file = _FRONTEND_DIR / "admin.html"
+    if admin_file.exists():
+        return FileResponse(admin_file)
+    return JSONResponse({"detail": "admin not found"}, status_code=404)
+
+
 # Routers — a ordem importa: redirect por último para não engolir rotas raiz
 app.include_router(urls.router)
 app.include_router(redirect.router)

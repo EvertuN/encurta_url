@@ -1,776 +1,442 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>encurtaurl — Links longos. Agora, simples.</title>
-  <meta name="description" content="Serviço moderno e ultrarrápido de encurtamento de URLs com cache Redis, estatísticas em tempo real e API RESTful." />
-  
-  <!-- Tipografia Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EncurtaURL — Encurtador de URLs</title>
+    <meta name="description" content="Transforme URLs enormes em links curtos e fáceis de compartilhar.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <style>
-    :root {
-      --bg: #0b0f19;
-      --surface: #131b2e;
-      --surface-border: #1e293b;
-      --surface-hover: #1a243b;
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --primary-glow: rgba(99, 102, 241, 0.35);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --success: #10b981;
-      --success-glow: rgba(16, 185, 129, 0.2);
-      --error: #ef4444;
-      --error-bg: rgba(239, 68, 68, 0.1);
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
-    }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+        body {
+            font-family: "Inter", Arial, Helvetica, sans-serif;
+            background: #f7f8fa;
+            color: #171717;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    body {
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      background-image: 
-        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.15), transparent 40%),
-        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.08), transparent 40%);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 2rem 1rem;
-      -webkit-font-smoothing: antialiased;
-    }
+        /* Header */
+        header {
+            width: 100%;
+            border-bottom: 1px solid #e5e7eb;
+            background: #ffffff;
+        }
 
-    .container {
-      width: 100%;
-      max-width: 580px;
-      display: flex;
-      flex-direction: column;
-      gap: 1.75rem;
-    }
+        nav {
+            max-width: 1000px;
+            margin: 0 auto;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
 
-    /* Cabeçalho */
-    header {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.75rem;
-    }
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            text-decoration: none;
+        }
 
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.25);
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      color: #a5b4fc;
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-    }
+        .logo span {
+            color: #4f46e5;
+        }
 
-    .brand-icon {
-      width: 16px;
-      height: 16px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2.2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
+        .nav-link {
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.15s;
+        }
 
-    h1 {
-      font-size: 2.25rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+        .nav-link:hover {
+            color: #111827;
+        }
 
-    .tagline {
-      color: var(--text-muted);
-      font-size: 1rem;
-      line-height: 1.5;
-      max-width: 440px;
-    }
+        /* Main */
+        main {
+            flex: 1;
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 80px 20px 60px;
+            text-align: center;
+        }
 
-    /* Navegação por Abas */
-    .tabs {
-      display: flex;
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius-md);
-      padding: 4px;
-      gap: 4px;
-    }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            margin-bottom: 22px;
+            border-radius: 20px;
+            background: #eef2ff;
+            color: #4f46e5;
+            font-size: 13px;
+            font-weight: 600;
+        }
 
-    .tab-btn {
-      flex: 1;
-      padding: 0.6rem 1rem;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      font-weight: 600;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
+        h1 {
+            font-size: 42px;
+            line-height: 1.15;
+            letter-spacing: -1.5px;
+            margin-bottom: 14px;
+        }
 
-    .tab-btn:hover {
-      color: var(--text-main);
-    }
+        .description {
+            max-width: 480px;
+            margin: 0 auto 36px;
+            color: #6b7280;
+            font-size: 16px;
+            line-height: 1.6;
+        }
 
-    .tab-btn.active {
-      background: rgba(99, 102, 241, 0.15);
-      color: #c7d2fe;
-      border: 1px solid rgba(99, 102, 241, 0.3);
-    }
+        /* Formulário */
+        .form {
+            display: flex;
+            gap: 8px;
+            background: #ffffff;
+            padding: 6px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
 
-    /* Card Principal */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius-lg);
-      padding: 1.75rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-      position: relative;
-      overflow: hidden;
-    }
+        .form input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            padding: 13px 14px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #111827;
+            background: transparent;
+        }
 
-    .tab-content {
-      display: none;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
+        .form input::placeholder {
+            color: #9ca3af;
+        }
 
-    .tab-content.active {
-      display: flex;
-      animation: fadeIn 0.25s ease-out;
-    }
+        .form button {
+            border: none;
+            background: #4f46e5;
+            color: #fff;
+            padding: 0 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+        .form button:hover:not(:disabled) {
+            background: #4338ca;
+        }
 
-    /* Formulário */
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
+        .form button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
 
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
+        .spinner {
+            display: none;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
 
-    .input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-    input[type="url"],
-    input[type="text"] {
-      width: 100%;
-      padding: 0.85rem 1rem;
-      background: #0d1322;
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius-md);
-      color: var(--text-main);
-      font-size: 0.95rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
+        /* Resultado */
+        .result {
+            display: none;
+            margin-top: 14px;
+            padding: 16px 18px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            text-align: left;
+        }
 
-    input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px var(--primary-glow);
-    }
+        .result-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
 
-    input::placeholder {
-      color: var(--text-dim);
-    }
+        .result-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
 
-    /* Detalhes expansíveis (código personalizado) */
-    details {
-      border-top: 1px solid var(--surface-border);
-      padding-top: 0.75rem;
-    }
+        .result-url {
+            color: #4f46e5;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
-    summary {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-weight: 500;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: color 0.2s;
-    }
+        .result-url:hover {
+            text-decoration: underline;
+        }
 
-    summary:hover {
-      color: #a5b4fc;
-    }
+        .btn-copy {
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            color: #374151;
+            padding: 6px 14px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
 
-    .custom-code-fields {
-      margin-top: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
+        .btn-copy:hover {
+            background: #f3f4f6;
+        }
 
-    .helper-text {
-      font-size: 0.75rem;
-      color: var(--text-dim);
-    }
+        .result-original {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #9ca3af;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
-    /* Botão Principal */
-    .btn-submit {
-      padding: 0.85rem 1.5rem;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-      color: #ffffff;
-      border: none;
-      border-radius: var(--radius-md);
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 14px var(--primary-glow);
-    }
+        /* Erro */
+        .error-msg {
+            display: none;
+            margin-top: 12px;
+            padding: 11px 14px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            color: #b91c1c;
+            font-size: 14px;
+            text-align: left;
+        }
 
-    .btn-submit:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
-    }
+        /* Stats decorativos */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 70px;
+        }
 
-    .btn-submit:active:not(:disabled) {
-      transform: translateY(0);
-    }
+        .stat strong {
+            display: block;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
 
-    .btn-submit:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
+        .stat span {
+            color: #9ca3af;
+            font-size: 13px;
+        }
 
-    /* Spinner */
-    .spinner {
-      display: none;
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #ffffff;
-      animation: spin 0.8s linear infinite;
-    }
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 28px 20px;
+            color: #9ca3af;
+            font-size: 13px;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
+        }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Mensagem de Erro */
-    .alert-error {
-      display: none;
-      background: var(--error-bg);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: var(--radius-md);
-      padding: 0.75rem 1rem;
-      color: #fca5a5;
-      font-size: 0.85rem;
-      align-items: center;
-      gap: 0.5rem;
-      animation: shake 0.3s ease;
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-4px); }
-      75% { transform: translateX(4px); }
-    }
-
-    /* Resultado do Encurtador */
-    .result-box {
-      display: none;
-      flex-direction: column;
-      gap: 0.85rem;
-      background: rgba(16, 185, 129, 0.05);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: var(--radius-md);
-      padding: 1rem;
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    .result-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--success);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .result-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      background: #0d1322;
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      border-radius: var(--radius-sm);
-      padding: 0.6rem 0.85rem;
-    }
-
-    .short-link {
-      color: #6ee7b7;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .short-link:hover {
-      text-decoration: underline;
-    }
-
-    .btn-copy {
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      color: #a7f3d0;
-      padding: 0.4rem 0.75rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
-    .btn-copy:hover {
-      background: rgba(16, 185, 129, 0.25);
-    }
-
-    .original-url-preview {
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* Cards de Estatísticas */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.85rem;
-    }
-
-    .stat-card {
-      background: #0d1322;
-      border: 1px solid var(--surface-border);
-      border-radius: var(--radius-md);
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--text-main);
-    }
-
-    .stat-sub {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    /* Rodapé */
-    footer {
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    footer a {
-      color: var(--text-muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    footer a:hover {
-      color: #c7d2fe;
-    }
-
-    .footer-links {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
-  </style>
+        /* Responsivo */
+        @media (max-width: 600px) {
+            main { padding-top: 50px; }
+            h1 { font-size: 32px; letter-spacing: -1px; }
+            .form { flex-direction: column; }
+            .form button { height: 48px; justify-content: center; }
+            .stats { gap: 28px; }
+        }
+    </style>
 </head>
+
 <body>
 
-  <main class="container">
-    <!-- Cabeçalho -->
     <header>
-      <div class="brand">
-        <svg class="brand-icon" viewBox="0 0 24 24">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-        </svg>
-        encurtaurl
-      </div>
-      <h1>Links longos.<br />Agora, simples.</h1>
-      <p class="tagline">Encurte URLs em milissegundos com cache Redis e métricas de cliques em tempo real.</p>
+        <nav>
+            <a href="/" class="logo">Encurta<span>URL</span></a>
+            <a href="/admin" class="nav-link">Estatísticas</a>
+        </nav>
     </header>
 
-    <!-- Navegação de Abas -->
-    <nav class="tabs" aria-label="Ações principais">
-      <button class="tab-btn active" id="tab-shorten" onclick="switchTab('shorten')">
-        ✂️ Encurtar URL
-      </button>
-      <button class="tab-btn" id="tab-stats" onclick="switchTab('stats')">
-        📊 Estatísticas
-      </button>
-    </nav>
+    <main>
+        <div class="badge">Encurtador de URLs</div>
 
-    <!-- Card Principal -->
-    <section class="card">
+        <h1>Links longos.<br>Agora, simples.</h1>
 
-      <!-- ABA 1: ENCURTAR -->
-      <div class="tab-content active" id="content-shorten">
-        <form id="shorten-form" onsubmit="handleShorten(event)">
-          <div class="form-group">
-            <label for="url-input">URL Original</label>
-            <div class="input-wrapper">
-              <input
+        <p class="description">
+            Transforme URLs enormes em links curtos e fáceis de compartilhar.
+        </p>
+
+        <div class="form">
+            <input
                 type="text"
                 id="url-input"
-                name="url"
-                placeholder="https://seusite.com/artigo-muito-longo"
-                required
+                placeholder="Cole sua URL aqui..."
                 autocomplete="off"
-              />
-            </div>
-          </div>
-
-          <!-- Opções Avançadas -->
-          <details style="margin-top: 0.85rem;">
-            <summary>⚙️ Personalizar código curto (opcional)</summary>
-            <div class="custom-code-fields">
-              <input
-                type="text"
-                id="custom-code-input"
-                placeholder="ex: meu-link"
-                maxlength="12"
-                autocomplete="off"
-              />
-              <span class="helper-text">De 4 a 12 caracteres alfanuméricos (A-Z, a-z, 0-9).</span>
-            </div>
-          </details>
-
-          <!-- Alerta de Erro -->
-          <div class="alert-error" id="shorten-error" role="alert"></div>
-
-          <!-- Botão Submeter -->
-          <button type="submit" class="btn-submit" id="shorten-btn" style="margin-top: 1rem; width: 100%;">
-            <span class="spinner" id="shorten-spinner"></span>
-            <span id="shorten-btn-text">Encurtar URL</span>
-          </button>
-        </form>
-
-        <!-- Box de Resultado -->
-        <div class="result-box" id="result-box">
-          <div class="result-header">
-            <span>✨ Link Encurtado</span>
-            <span id="result-code-tag"></span>
-          </div>
-          <div class="result-row">
-            <a href="#" class="short-link" id="short-link" target="_blank" rel="noopener noreferrer"></a>
-            <button class="btn-copy" id="btn-copy" onclick="copyLink()">Copiar</button>
-          </div>
-          <div class="original-url-preview" id="original-preview"></div>
+            >
+            <button type="button" id="shorten-btn" onclick="handleShorten()">
+                <span class="spinner" id="spinner"></span>
+                <span id="btn-text">Encurtar</span>
+            </button>
         </div>
-      </div>
 
-      <!-- ABA 2: ESTATÍSTICAS -->
-      <div class="tab-content" id="content-stats">
-        <form id="stats-form" onsubmit="handleStats(event)">
-          <div class="form-group">
-            <label for="stats-code-input">Código da URL Curta</label>
-            <div class="input-wrapper">
-              <input
-                type="text"
-                id="stats-code-input"
-                placeholder="Exemplo: 5V3JJF"
-                required
-                autocomplete="off"
-              />
+        <div class="error-msg" id="error-msg"></div>
+
+        <div class="result" id="result">
+            <div class="result-label">Seu link curto</div>
+            <div class="result-row">
+                <a href="#" class="result-url" id="result-url" target="_blank" rel="noopener noreferrer"></a>
+                <button class="btn-copy" id="btn-copy" onclick="copyLink()">Copiar</button>
             </div>
-            <span class="helper-text">Digite o código ou cole a URL curta completa.</span>
-          </div>
-
-          <!-- Alerta de Erro Stats -->
-          <div class="alert-error" id="stats-error" role="alert"></div>
-
-          <button type="submit" class="btn-submit" id="stats-btn" style="width: 100%;">
-            <span class="spinner" id="stats-spinner"></span>
-            <span id="stats-btn-text">Ver Estatísticas</span>
-          </button>
-        </form>
-
-        <!-- Box de Resultado Stats -->
-        <div id="stats-result" style="display: none; margin-top: 0.5rem;">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <span class="stat-label">Total de Cliques</span>
-              <span class="stat-value" id="stat-clicks">0</span>
-              <span class="stat-sub">acessos registrados</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Último Acesso</span>
-              <span class="stat-value" id="stat-last-click" style="font-size: 1rem; line-height: 1.5;">—</span>
-              <span class="stat-sub" id="stat-last-sub">timestamp</span>
-            </div>
-          </div>
+            <div class="result-original" id="result-original"></div>
         </div>
-      </div>
 
-    </section>
-  </main>
+        <div class="stats">
+            <div class="stat">
+                <strong>62⁶</strong>
+                <span>combinações possíveis</span>
+            </div>
+            <div class="stat">
+                <strong>&lt; 5ms</strong>
+                <span>tempo de resposta</span>
+            </div>
+            <div class="stat">
+                <strong>Redis</strong>
+                <span>cache em memória</span>
+            </div>
+        </div>
+    </main>
 
-  <!-- Rodapé -->
-  <footer>
-    <p>Construído com FastAPI, PostgreSQL e Redis.</p>
-    <div class="footer-links">
-      <a href="/docs" target="_blank">Documentação da API (Swagger)</a>
-      <span>•</span>
-      <a href="/health" target="_blank">Status da API</a>
-    </div>
-  </footer>
+    <footer>
+        © 2026 EncurtaURL. Simples e rápido. &mdash; <a href="/docs" style="color: #9ca3af;">API</a>
+    </footer>
 
-  <script>
-    // Gerenciador de Abas
-    function switchTab(tab) {
-      const isShorten = tab === 'shorten';
-      document.getElementById('tab-shorten').classList.toggle('active', isShorten);
-      document.getElementById('tab-stats').classList.toggle('active', !isShorten);
-      document.getElementById('content-shorten').classList.toggle('active', isShorten);
-      document.getElementById('content-stats').classList.toggle('active', !isShorten);
-    }
+    <script>
+        async function handleShorten() {
+            const input = document.getElementById('url-input');
+            const btn = document.getElementById('shorten-btn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btn-text');
+            const errorEl = document.getElementById('error-msg');
+            const resultEl = document.getElementById('result');
 
-    // Helper de Erro
-    function showError(elementId, message) {
-      const el = document.getElementById(elementId);
-      if (message) {
-        el.textContent = message;
-        el.style.display = 'flex';
-      } else {
-        el.textContent = '';
-        el.style.display = 'none';
-      }
-    }
+            let url = input.value.trim();
+            if (!url) return;
 
-    // Encurtar URL
-    async function handleShorten(event) {
-      event.preventDefault();
-      showError('shorten-error', null);
-      document.getElementById('result-box').style.display = 'none';
+            // Normaliza se não tiver protocolo
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+                input.value = url;
+            }
 
-      let originalUrl = document.getElementById('url-input').value.trim();
-      const customCode = document.getElementById('custom-code-input').value.trim();
+            errorEl.style.display = 'none';
+            resultEl.style.display = 'none';
 
-      // Normaliza se esquecer o protocolo http:// ou https://
-      if (!/^https?:\/\//i.test(originalUrl)) {
-        originalUrl = 'https://' + originalUrl;
-        document.getElementById('url-input').value = originalUrl;
-      }
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            btnText.textContent = 'Encurtando...';
 
-      const payload = { original_url: originalUrl };
-      if (customCode) {
-        payload.custom_code = customCode;
-      }
+            try {
+                const res = await fetch('/urls', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ original_url: url }),
+                });
 
-      const btn = document.getElementById('shorten-btn');
-      const spinner = document.getElementById('shorten-spinner');
-      const btnText = document.getElementById('shorten-btn-text');
+                const data = await res.json();
 
-      btn.disabled = true;
-      spinner.style.display = 'inline-block';
-      btnText.textContent = 'Encurtando...';
+                if (!res.ok) {
+                    let msg = 'Não foi possível encurtar a URL.';
+                    if (res.status === 422) msg = 'URL inválida. Verifique o endereço e tente novamente.';
+                    else if (data.detail && typeof data.detail === 'string') msg = data.detail;
+                    errorEl.textContent = msg;
+                    errorEl.style.display = 'block';
+                    return;
+                }
 
-      try {
-        const response = await fetch('/urls', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+                const urlEl = document.getElementById('result-url');
+                urlEl.href = data.short_url;
+                urlEl.textContent = data.short_url;
+                document.getElementById('result-original').textContent = data.original_url;
+
+                resultEl.style.display = 'block';
+                resetCopy();
+                input.value = '';
+            } catch (e) {
+                errorEl.textContent = 'Erro de conexão com o servidor.';
+                errorEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = 'Encurtar';
+            }
+        }
+
+        async function copyLink() {
+            const url = document.getElementById('result-url').textContent;
+            const btn = document.getElementById('btn-copy');
+            try {
+                await navigator.clipboard.writeText(url);
+            } catch (e) {
+                const tmp = document.createElement('input');
+                tmp.value = url;
+                document.body.appendChild(tmp);
+                tmp.select();
+                document.execCommand('copy');
+                document.body.removeChild(tmp);
+            }
+            btn.textContent = '✓ Copiado!';
+            setTimeout(resetCopy, 2000);
+        }
+
+        function resetCopy() {
+            document.getElementById('btn-copy').textContent = 'Copiar';
+        }
+
+        // Permitir Enter para encurtar
+        document.getElementById('url-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleShorten();
         });
+    </script>
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          let errorMsg = 'Erro ao encurtar URL.';
-          if (response.status === 409) {
-            errorMsg = 'Este código personalizado já está em uso.';
-          } else if (response.status === 422) {
-            errorMsg = 'URL inválida ou código fora do padrão (4 a 12 caracteres alfanuméricos).';
-          } else if (data.detail) {
-            errorMsg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
-          }
-          showError('shorten-error', errorMsg);
-          return;
-        }
-
-        // Exibe o resultado com sucesso
-        const shortLinkEl = document.getElementById('short-link');
-        shortLinkEl.href = data.short_url;
-        shortLinkEl.textContent = data.short_url;
-
-        document.getElementById('result-code-tag').textContent = `#${data.short_code}`;
-        document.getElementById('original-preview').textContent = `Destino: ${data.original_url}`;
-
-        document.getElementById('result-box').style.display = 'flex';
-        resetCopyButton();
-      } catch (err) {
-        showError('shorten-error', 'Erro de conexão com o servidor. Tente novamente.');
-      } finally {
-        btn.disabled = false;
-        spinner.style.display = 'none';
-        btnText.textContent = 'Encurtar URL';
-      }
-    }
-
-    // Copiar para o Clipboard
-    async function copyLink() {
-      const link = document.getElementById('short-link').textContent;
-      const copyBtn = document.getElementById('btn-copy');
-
-      try {
-        await navigator.clipboard.writeText(link);
-        copyBtn.textContent = '✓ Copiado!';
-        copyBtn.style.background = 'rgba(16, 185, 129, 0.35)';
-        setTimeout(resetCopyButton, 2200);
-      } catch (err) {
-        // Fallback antigo
-        const temp = document.createElement('input');
-        temp.value = link;
-        document.body.appendChild(temp);
-        temp.select();
-        document.execCommand('copy');
-        document.body.removeChild(temp);
-        copyBtn.textContent = '✓ Copiado!';
-        setTimeout(resetCopyButton, 2200);
-      }
-    }
-
-    function resetCopyButton() {
-      const copyBtn = document.getElementById('btn-copy');
-      copyBtn.textContent = 'Copiar';
-      copyBtn.style.background = 'rgba(16, 185, 129, 0.15)';
-    }
-
-    // Consultar Estatísticas
-    async function handleStats(event) {
-      event.preventDefault();
-      showError('stats-error', null);
-      document.getElementById('stats-result').style.display = 'none';
-
-      let inputVal = document.getElementById('stats-code-input').value.trim();
-      // Se colou a URL inteira, extrai apenas o short_code final
-      const codeMatch = inputVal.match(/([a-zA-Z0-9]+)\/?$/);
-      const shortCode = codeMatch ? codeMatch[1] : inputVal;
-
-      const btn = document.getElementById('stats-btn');
-      const spinner = document.getElementById('stats-spinner');
-      const btnText = document.getElementById('stats-btn-text');
-
-      btn.disabled = true;
-      spinner.style.display = 'inline-block';
-      btnText.textContent = 'Consultando...';
-
-      try {
-        const response = await fetch(`/urls/${encodeURIComponent(shortCode)}/stats`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          showError('stats-error', response.status === 404 ? 'Código curto não encontrado.' : 'Erro ao consultar estatísticas.');
-          return;
-        }
-
-        document.getElementById('stat-clicks').textContent = data.total_clicks;
-        
-        if (data.last_click) {
-          const date = new Date(data.last_click);
-          document.getElementById('stat-last-click').textContent = date.toLocaleDateString('pt-BR', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit', second: '2-digit'
-          });
-          document.getElementById('stat-last-sub').textContent = 'último clique registrado';
-        } else {
-          document.getElementById('stat-last-click').textContent = 'Nenhum clique';
-          document.getElementById('stat-last-sub').textContent = 'ainda sem acessos';
-        }
-
-        document.getElementById('stats-result').style.display = 'block';
-      } catch (err) {
-        showError('stats-error', 'Erro ao conectar ao servidor.');
-      } finally {
-        btn.disabled = false;
-        spinner.style.display = 'none';
-        btnText.textContent = 'Ver Estatísticas';
-      }
-    }
-  </script>
 </body>
 </html>
