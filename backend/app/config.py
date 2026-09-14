@@ -8,7 +8,9 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    database_url: str = "postgresql+asyncpg://postgres:postgres@postgres:5432/encurtaurl"
+    database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@postgres:5432/encurtaurl"
+    )
     redis_url: str = "redis://redis:6379/0"
     base_url: str = "http://localhost:8000"
     app_env: str = "development"

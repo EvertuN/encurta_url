@@ -1,9 +1,8 @@
 """Serviço de URLs — orquestra geração, persistência e ciclo de vida de URLs."""
 
+import redis.asyncio as aioredis
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-
-import redis.asyncio as aioredis
 
 from app.config import settings
 from app.models.url import Url
@@ -57,13 +56,13 @@ async def create_short_url(db: AsyncSession, payload: UrlCreate) -> Url:
                 short_code=code,
                 expires_at=payload.expires_at,
             )
-        except IntegrityError:
+        except IntegrityError as err:
             await db.rollback()
             if attempt == settings.short_code_max_retries:
                 raise ShortCodeCollisionError(
                     f"Não foi possível gerar um código único após "
                     f"{settings.short_code_max_retries} tentativas."
-                )
+                ) from err
 
     # Nunca atingido — satisfaz o type checker
     raise ShortCodeCollisionError("Falha inesperada na geração de short_code.")

@@ -8,7 +8,9 @@ from httpx import AsyncClient
 async def test_redirect_returns_302(client: AsyncClient):
     """Criar uma URL e depois acessá-la deve retornar 302."""
     # Cria a URL
-    create = await client.post("/urls", json={"original_url": "https://redirect-test.com"})
+    create = await client.post(
+        "/urls", json={"original_url": "https://redirect-test.com"}
+    )
     assert create.status_code == 201
     short_code = create.json()["short_code"]
 

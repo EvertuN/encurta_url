@@ -34,7 +34,5 @@ def generate_short_code(length: int | None = None) -> str:
 def is_valid_short_code(code: str) -> bool:
     """Verifica se um código contém apenas caracteres permitidos e tem tamanho mínimo."""
     return (
-        isinstance(code, str)
-        and len(code) >= 4
-        and all(c in _ALPHABET for c in code)
+        isinstance(code, str) and len(code) >= 4 and all(c in _ALPHABET for c in code)
     )

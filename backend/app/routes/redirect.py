@@ -1,10 +1,9 @@
 """Router de redirecionamento — GET /{short_code}."""
 
+import redis.asyncio as aioredis
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-
-import redis.asyncio as aioredis
 
 from app.database.redis import get_redis
 from app.database.session import get_db

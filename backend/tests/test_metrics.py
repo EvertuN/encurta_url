@@ -16,7 +16,9 @@ from app.services.metrics_service import extract_client_ip, record_click
 async def test_click_event_recorded_on_redirect(client: AsyncClient, db: AsyncSession):
     """Acesso a uma URL válida deve persistir um ClickEvent com metadados."""
     # 1. Cria a URL
-    create_res = await client.post("/urls", json={"original_url": "https://example.com/metrics"})
+    create_res = await client.post(
+        "/urls", json={"original_url": "https://example.com/metrics"}
+    )
     assert create_res.status_code == 201
     data = create_res.json()
     short_code = data["short_code"]
@@ -28,7 +30,9 @@ async def test_click_event_recorded_on_redirect(client: AsyncClient, db: AsyncSe
         "Referer": "https://google.com/search",
         "X-Forwarded-For": "203.0.113.195",
     }
-    response = await client.get(f"/{short_code}", headers=headers, follow_redirects=False)
+    response = await client.get(
+        f"/{short_code}", headers=headers, follow_redirects=False
+    )
     assert response.status_code == 302
 
     # 3. Verifica no banco se o evento foi gravado
@@ -47,7 +51,9 @@ async def test_click_event_recorded_on_redirect(client: AsyncClient, db: AsyncSe
 @pytest.mark.asyncio
 async def test_click_recorded_on_cache_hit(client: AsyncClient, db: AsyncSession):
     """Cliques devem ser contabilizados tanto no cache miss quanto no cache hit."""
-    create_res = await client.post("/urls", json={"original_url": "https://example.com/cache-hit"})
+    create_res = await client.post(
+        "/urls", json={"original_url": "https://example.com/cache-hit"}
+    )
     assert create_res.status_code == 201
     data = create_res.json()
     short_code = data["short_code"]
@@ -75,7 +81,9 @@ async def test_click_event_not_recorded_on_404(client: AsyncClient, db: AsyncSes
 
     result = await db.execute(select(ClickEvent))
     events = result.scalars().all()
-    assert not any(e.url_id == UUID("00000000-0000-0000-0000-000000000000") for e in events)
+    assert not any(
+        e.url_id == UUID("00000000-0000-0000-0000-000000000000") for e in events
+    )
 
 
 def test_extract_client_ip():

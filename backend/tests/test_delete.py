@@ -14,7 +14,9 @@ from app.models.click_event import ClickEvent
 async def test_delete_url_returns_204(client: AsyncClient):
     """DELETE /urls/{code} para URL existente deve retornar 204 e torná-la inacessível."""
     # 1. Cria a URL
-    create = await client.post("/urls", json={"original_url": "https://example.com/delete-me"})
+    create = await client.post(
+        "/urls", json={"original_url": "https://example.com/delete-me"}
+    )
     assert create.status_code == 201
     short_code = create.json()["short_code"]
 
@@ -35,7 +37,9 @@ async def test_delete_url_returns_204(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_delete_url_invalidates_redis_cache(client: AsyncClient, fake_redis):
     """Remoção da URL deve obrigatoriamente invalidar a chave correspondente no Redis."""
-    create = await client.post("/urls", json={"original_url": "https://example.com/cache-del"})
+    create = await client.post(
+        "/urls", json={"original_url": "https://example.com/cache-del"}
+    )
     short_code = create.json()["short_code"]
 
     # Primeiro acesso para popular o cache
@@ -67,14 +71,20 @@ async def test_delete_url_not_found_returns_404(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_delete_url_cascades_clicks(client: AsyncClient, db: AsyncSession):
     """Exclusão da URL deve remover em cascata os click_events associados no banco."""
-    create = await client.post("/urls", json={"original_url": "https://example.com/cascade"})
+    create = await client.post(
+        "/urls", json={"original_url": "https://example.com/cascade"}
+    )
     data = create.json()
     short_code = data["short_code"]
     url_id = UUID(data["id"])
 
     # Registra clique
     await client.get(f"/{short_code}", follow_redirects=False)
-    clicks = (await db.execute(select(ClickEvent).where(ClickEvent.url_id == url_id))).scalars().all()
+    clicks = (
+        (await db.execute(select(ClickEvent).where(ClickEvent.url_id == url_id)))
+        .scalars()
+        .all()
+    )
     assert len(clicks) == 1
 
     # Deleta a URL
@@ -82,5 +92,9 @@ async def test_delete_url_cascades_clicks(client: AsyncClient, db: AsyncSession)
     assert del_res.status_code == 204
 
     # Eventos de clique devem ter sido removidos em cascata
-    clicks_after = (await db.execute(select(ClickEvent).where(ClickEvent.url_id == url_id))).scalars().all()
+    clicks_after = (
+        (await db.execute(select(ClickEvent).where(ClickEvent.url_id == url_id)))
+        .scalars()
+        .all()
+    )
     assert len(clicks_after) == 0

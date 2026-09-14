@@ -49,9 +49,13 @@ async def record_click(
             await _persist_click(db, short_code, ip, user_agent, referer, url_id)
         else:
             async with AsyncSessionLocal() as session:
-                await _persist_click(session, short_code, ip, user_agent, referer, url_id)
+                await _persist_click(
+                    session, short_code, ip, user_agent, referer, url_id
+                )
     except Exception:
-        logger.exception("Falha ao registrar evento de clique para short_code=%s", short_code)
+        logger.exception(
+            "Falha ao registrar evento de clique para short_code=%s", short_code
+        )
 
 
 async def _persist_click(

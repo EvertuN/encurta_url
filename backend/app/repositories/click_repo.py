@@ -1,6 +1,7 @@
 """Repositório de eventos de clique — persistência de métricas."""
 
 import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.click_event import ClickEvent

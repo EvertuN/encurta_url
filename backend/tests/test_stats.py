@@ -7,7 +7,9 @@ from httpx import AsyncClient
 @pytest.mark.asyncio
 async def test_get_url_info_returns_200(client: AsyncClient):
     """GET /urls/{code} deve retornar 200 com informações completas da URL."""
-    create = await client.post("/urls", json={"original_url": "https://example.com/info"})
+    create = await client.post(
+        "/urls", json={"original_url": "https://example.com/info"}
+    )
     assert create.status_code == 201
     created_data = create.json()
     short_code = created_data["short_code"]
@@ -35,7 +37,9 @@ async def test_get_url_info_not_found_returns_404(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_get_url_stats_zero_clicks(client: AsyncClient):
     """GET /urls/{code}/stats com zero cliques deve retornar total_clicks=0 e last_click=null."""
-    create = await client.post("/urls", json={"original_url": "https://example.com/zero-clicks"})
+    create = await client.post(
+        "/urls", json={"original_url": "https://example.com/zero-clicks"}
+    )
     short_code = create.json()["short_code"]
 
     res = await client.get(f"/urls/{short_code}/stats")
@@ -50,7 +54,9 @@ async def test_get_url_stats_zero_clicks(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_get_url_stats_with_clicks(client: AsyncClient):
     """GET /urls/{code}/stats após N acessos deve refletir contagem e timestamp do último clique."""
-    create = await client.post("/urls", json={"original_url": "https://example.com/multiple-clicks"})
+    create = await client.post(
+        "/urls", json={"original_url": "https://example.com/multiple-clicks"}
+    )
     short_code = create.json()["short_code"]
 
     # Simula 3 acessos

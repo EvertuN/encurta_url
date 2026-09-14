@@ -1,7 +1,7 @@
 """Conexão Redis — cliente singleton gerenciado pelo lifespan do FastAPI."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 import redis.asyncio as aioredis
 

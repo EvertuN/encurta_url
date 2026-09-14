@@ -39,7 +39,9 @@ async def test_url_persisted_and_retrieved(db: AsyncSession):
 @pytest.mark.asyncio
 async def test_short_code_uniqueness_constraint(db: AsyncSession):
     url1 = Url(id=uuid.uuid4(), short_code="dup001", original_url="https://a.com")
-    url2 = Url(id=uuid.uuid4(), short_code="dup001", original_url="https://b.com")  # mesmo código
+    url2 = Url(
+        id=uuid.uuid4(), short_code="dup001", original_url="https://b.com"
+    )  # mesmo código
     db.add(url1)
     await db.flush()
     db.add(url2)

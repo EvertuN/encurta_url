@@ -1,9 +1,8 @@
 """Router de URLs — operações sobre o recurso URL."""
 
+import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-
-import redis.asyncio as aioredis
 
 from app.config import settings
 from app.database.redis import get_redis
@@ -44,11 +43,13 @@ async def create_url(
     try:
         url = await create_short_url(db, payload)
     except ShortCodeConflictError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
     except ShortCodeCollisionError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
-        )
+        ) from exc
 
     return _to_response(url, settings.base_url)
 
