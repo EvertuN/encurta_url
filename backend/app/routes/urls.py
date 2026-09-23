@@ -1,7 +1,7 @@
 """Router de URLs — operações sobre o recurso URL."""
 
 import redis.asyncio as aioredis
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -17,6 +17,18 @@ from app.services.url_service import (
 )
 
 router = APIRouter(prefix="/urls", tags=["URLs"])
+
+
+def _resolve_base_url(request: Request | None = None) -> str:
+    if settings.base_url and settings.base_url != "http://localhost:8000":
+        return settings.base_url.rstrip("/")
+    if request is not None:
+        proto = request.headers.get("x-forwarded-proto", request.url.scheme)
+        host = request.headers.get(
+            "x-forwarded-host", request.headers.get("host", request.url.netloc)
+        )
+        return f"{proto}://{host}".rstrip("/")
+    return settings.base_url.rstrip("/")
 
 
 def _to_response(url, base_url: str) -> UrlResponse:
@@ -38,6 +50,7 @@ def _to_response(url, base_url: str) -> UrlResponse:
 )
 async def create_url(
     payload: UrlCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> UrlResponse:
     try:
@@ -51,7 +64,7 @@ async def create_url(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
         ) from exc
 
-    return _to_response(url, settings.base_url)
+    return _to_response(url, _resolve_base_url(request))
 
 
 @router.get(
@@ -79,6 +92,7 @@ async def get_url_stats(
 )
 async def get_url_info(
     short_code: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> UrlInfo:
     url = await url_repo.get_url_by_code(db, short_code)
@@ -87,7 +101,7 @@ async def get_url_info(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Código '{short_code}' não encontrado.",
         )
-    return _to_response(url, settings.base_url)
+    return _to_response(url, _resolve_base_url(request))
 
 
 @router.delete(

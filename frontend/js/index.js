@@ -42,9 +42,10 @@ async function handleShorten() {
             return;
         }
 
+        const shortUrl = `${window.location.origin}/${data.short_code}`;
         const urlEl = document.getElementById('result-url');
-        urlEl.href = data.short_url;
-        urlEl.textContent = data.short_url;
+        urlEl.href = shortUrl;
+        urlEl.textContent = shortUrl;
         document.getElementById('result-original').textContent = data.original_url;
 
         resultEl.style.display = 'block';
